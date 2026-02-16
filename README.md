@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # 🏗️ Construction Project Tracking System (V1)
 
 A modern, dark-themed web application for tracking construction projects, phases, and daily progress logs.
@@ -217,3 +218,7 @@ For questions or issues, refer to:
 ---
 
 **Built with ❤️ for Construction Project Management**
+=======
+# Construction_Project_Traker
+A web-based construction project tracking system that helps contractors manage projects, phases, daily work logs, material usage, payments, and progress in real time. Includes Firebase-based data management, Cloudinary image uploads, and a modern responsive UI for efficient on-site monitoring.
+>>>>>>> f5a2bbcd703f1833af5053705074d67f9b952bc7
