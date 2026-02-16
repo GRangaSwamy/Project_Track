@@ -1,0 +1,33 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Helper to check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Helper to check if user owns a project
+    function isProjectOwner(projectId) {
+      return get(/databases/$(database)/documents/projects/$(projectId)).data.userId == request.auth.uid;
+    }
+
+    // Match projects
+    match /projects/{projectId} {
+      // Allow creation if the user is authenticated and sets themselves as the owner
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+      
+      // Allow read/write only if the authenticated user is the owner
+      allow read, update, delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
+
+      // Subcollections (phases, dailyLogs)
+      match /phases/{phaseId} {
+        // Access depends on owning the parent project
+        allow read, write: if isAuthenticated() && isProjectOwner(projectId);
+        
+        match /dailyLogs/{logId} {
+          allow read, write: if isAuthenticated() && isProjectOwner(projectId);
+        }
+      }
+    }
+  }
+}
