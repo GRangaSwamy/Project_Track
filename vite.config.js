@@ -17,7 +17,22 @@ export default defineConfig({
     },
   },
   build: {
-    outDir: 'build',
+    outDir: 'dist',
+    chunkSizeWarningLimit: 1000, // suppress warning; chunking below handles it
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          // React core
+          'vendor-react': ['react', 'react-dom', 'react-router-dom'],
+          // Firebase SDK
+          'vendor-firebase': ['firebase/app', 'firebase/auth', 'firebase/firestore'],
+          // PDF generation (large)
+          'vendor-pdf': ['jspdf', 'jspdf-autotable'],
+          // Lottie player
+          'vendor-lottie': ['@lottiefiles/react-lottie-player'],
+        },
+      },
+    },
   },
   server: {
     port: 3000,

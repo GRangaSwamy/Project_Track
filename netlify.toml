@@ -1,8 +1,35 @@
+# =============================================================
+#  ConstructaX — Netlify Configuration
+#  Vite + React + Firebase + Cloudinary (Pure Frontend SPA)
+# =============================================================
+
+# ── Build Settings ──────────────────────────────────────────
+[build]
+  command   = "npm run build"
+  publish   = "dist"
+
+  # Node version (match your local / CI version)
+  [build.environment]
+    NODE_VERSION = "18"
+
+# ── SPA Client-Side Routing ──────────────────────────────────
+# All routes must resolve to index.html so React Router works
 [[redirects]]
-  from = "/*"
-  to = "/index.html"
+  from   = "/*"
+  to     = "/index.html"
   status = 200
 
-[build]
-  command = "npm run build"
-  publish = "dist"
+# ── Security Headers ─────────────────────────────────────────
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options        = "DENY"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy        = "strict-origin-when-cross-origin"
+    Permissions-Policy     = "camera=(), microphone=(), geolocation=()"
+
+# ── Cache Static Assets ──────────────────────────────────────
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
