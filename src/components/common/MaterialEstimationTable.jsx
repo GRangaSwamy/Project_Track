@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { subscribeMaterialLogs, deleteMaterialLog, groupLogsByDate, calculateMaterialTotals, MATERIALS } from '../../services/materialService';
+import { subscribeMaterialLogs, deleteMaterialLog, updateMaterialLog, groupLogsByDate, calculateMaterialTotals, MATERIALS } from '../../services/materialService';
 import Modal from './Modal';
 import Button from './Button';
 import jsPDF from 'jspdf';
@@ -17,6 +17,7 @@ const MaterialEstimationTable = ({ isOpen, onClose, projectId, projectName, onUp
     const [totals, setTotals] = useState({});
     const [loading, setLoading] = useState(true);
     const [deleting, setDeleting] = useState(null);
+    const [markingPaid, setMarkingPaid] = useState(null); // logId being marked as paid
 
     // Real-time subscription
     useEffect(() => {
@@ -68,6 +69,16 @@ const MaterialEstimationTable = ({ isOpen, onClose, projectId, projectName, onUp
         }
 
         setDeleting(null);
+    };
+
+    const handleMarkAsPaid = async (log) => {
+        setMarkingPaid(log.id);
+        const result = await updateMaterialLog(projectId, log.id, { paymentDone: true });
+        if (!result.success) {
+            alert(`Error marking as paid: ${result.error}`);
+        }
+        // Real-time listener auto-updates the UI
+        setMarkingPaid(null);
     };
 
     const formatDate = (dateString) => {
@@ -396,8 +407,44 @@ const MaterialEstimationTable = ({ isOpen, onClose, projectId, projectName, onUp
 
             {/* Individual Logs with Delete */}
             <div>
+                {/* Unpaid alert banner */}
+                {logs.filter(l => l.paymentDone === false).length > 0 && (
+                    <div style={{
+                        marginBottom: 'var(--spacing-md)',
+                        padding: '10px 14px',
+                        backgroundColor: '#fff3e0',
+                        border: '1px solid #ffb74d',
+                        borderRadius: 'var(--radius-md)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        flexWrap: 'wrap',
+                        gap: '8px',
+                    }}>
+                        <span style={{ fontWeight: '700', color: '#e65100', fontSize: '0.875rem' }}>
+                            ⚠️ {logs.filter(l => l.paymentDone === false).length} Unpaid {logs.filter(l => l.paymentDone === false).length === 1 ? 'entry' : 'entries'} — Total Pending: ₹{formatNumber(logs.filter(l => l.paymentDone === false).reduce((sum, l) => sum + (l.amount || 0), 0))}
+                        </span>
+                        <span style={{ fontSize: '0.75rem', color: '#bf360c' }}>
+                            Click <strong>✓ Mark Paid</strong> on each entry below to clear
+                        </span>
+                    </div>
+                )}
                 <h3 style={{ marginBottom: 'var(--spacing-md)', fontSize: '1rem', color: '#000', fontWeight: '700' }}>
                     📝 Individual Entries ({logs.length})
+                    {logs.filter(l => l.paymentDone === false).length > 0 && (
+                        <span style={{
+                            marginLeft: '8px',
+                            fontSize: '0.72rem',
+                            fontWeight: '700',
+                            padding: '2px 8px',
+                            backgroundColor: '#ffebee',
+                            color: '#c62828',
+                            borderRadius: '999px',
+                            border: '1px solid #ef9a9a',
+                        }}>
+                            {logs.filter(l => l.paymentDone === false).length} Unpaid
+                        </span>
+                    )}
                 </h3>
                 <div style={{
                     maxHeight: '300px',
@@ -460,22 +507,46 @@ const MaterialEstimationTable = ({ isOpen, onClose, projectId, projectName, onUp
                                     {log.paymentDone === false ? '✗ Unpaid' : '✓ Paid'}
                                 </span>
                             </div>
-                            <button
-                                onClick={() => handleDelete(log.id)}
-                                disabled={deleting === log.id}
-                                style={{
-                                    padding: '6px 12px',
-                                    backgroundColor: deleting === log.id ? '#ccc' : 'transparent',
-                                    border: '1px solid #d32f2f',
-                                    borderRadius: 'var(--radius-sm)',
-                                    color: '#d32f2f',
-                                    fontSize: '0.75rem',
-                                    cursor: deleting === log.id ? 'not-allowed' : 'pointer',
-                                    fontWeight: '600',
-                                }}
-                            >
-                                {deleting === log.id ? 'Deleting...' : '❌ Delete'}
-                            </button>
+                            {/* Action buttons */}
+                            <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                                {/* Mark as Paid — only shown for unpaid entries */}
+                                {log.paymentDone === false && (
+                                    <button
+                                        onClick={() => handleMarkAsPaid(log)}
+                                        disabled={markingPaid === log.id}
+                                        title="Mark this payment as done"
+                                        style={{
+                                            padding: '6px 10px',
+                                            backgroundColor: markingPaid === log.id ? '#ccc' : '#e8f5e9',
+                                            border: '1px solid #2e7d32',
+                                            borderRadius: 'var(--radius-sm)',
+                                            color: '#2e7d32',
+                                            fontSize: '0.72rem',
+                                            cursor: markingPaid === log.id ? 'not-allowed' : 'pointer',
+                                            fontWeight: '700',
+                                            whiteSpace: 'nowrap',
+                                        }}
+                                    >
+                                        {markingPaid === log.id ? '⏳ Saving...' : '✓ Mark Paid'}
+                                    </button>
+                                )}
+                                <button
+                                    onClick={() => handleDelete(log.id)}
+                                    disabled={deleting === log.id}
+                                    style={{
+                                        padding: '6px 12px',
+                                        backgroundColor: deleting === log.id ? '#ccc' : 'transparent',
+                                        border: '1px solid #d32f2f',
+                                        borderRadius: 'var(--radius-sm)',
+                                        color: '#d32f2f',
+                                        fontSize: '0.75rem',
+                                        cursor: deleting === log.id ? 'not-allowed' : 'pointer',
+                                        fontWeight: '600',
+                                    }}
+                                >
+                                    {deleting === log.id ? 'Deleting...' : '❌ Delete'}
+                                </button>
+                            </div>
                         </div>
                     ))}
                 </div>
