@@ -30,7 +30,7 @@ import {
 import { db } from './firebase';
 
 const MATERIALS = ['Sand', 'Cement', 'Labour', 'Metal', 'Iron'];
-const PAYMENT_METHODS = ['Cash', 'PhonePe'];
+const PAYMENT_METHODS = ['Cash', 'PhonePe', 'Pending'];
 
 // Material images (using Unsplash placeholders - replace with actual images)
 const MATERIAL_IMAGES = {
@@ -117,8 +117,10 @@ export const addMaterialLog = async (projectId, logData) => {
         const docRef = await addDoc(logsRef, {
             material: logData.material,
             amount: parseFloat(logData.amount),
+            quantity: logData.quantity || '',
             date: logData.date,
             paymentMethod: logData.paymentMethod || 'Cash',
+            paymentDone: logData.paymentDone !== undefined ? logData.paymentDone : true,
             timestamp: serverTimestamp(),
         });
 

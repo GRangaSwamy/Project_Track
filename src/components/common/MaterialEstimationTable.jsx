@@ -419,25 +419,45 @@ const MaterialEstimationTable = ({ isOpen, onClose, projectId, projectName, onUp
                                 gap: 'var(--spacing-sm)',
                             }}
                         >
-                            <div style={{ display: 'flex', gap: 'var(--spacing-md)', alignItems: 'center', flex: 1 }}>
-                                <span style={{ fontWeight: '600', color: '#000', minWidth: '80px' }}>
+                            <div style={{ display: 'flex', gap: 'var(--spacing-md)', alignItems: 'center', flex: 1, flexWrap: 'wrap' }}>
+                                <span style={{ fontWeight: '600', color: '#000', minWidth: '70px' }}>
                                     {log.material}
                                 </span>
                                 <span style={{ fontWeight: '700', color: '#000', minWidth: '80px' }}>
                                     ₹{formatNumber(log.amount)}
                                 </span>
+                                {log.quantity ? (
+                                    <span style={{ fontSize: '0.75rem', color: '#555', fontStyle: 'italic' }}>
+                                        📦 {log.quantity}
+                                    </span>
+                                ) : null}
                                 <span style={{ color: '#666', fontSize: '0.875rem' }}>
                                     {new Date(log.date).toLocaleDateString('en-IN')}
                                 </span>
                                 <span style={{
-                                    fontSize: '0.75rem',
+                                    fontSize: '0.7rem',
                                     padding: '2px 8px',
-                                    backgroundColor: log.paymentMethod === 'Cash' ? '#e3f2fd' : '#f3e5f5',
-                                    color: log.paymentMethod === 'Cash' ? '#1976d2' : '#7b1fa2',
+                                    backgroundColor:
+                                        log.paymentMethod === 'Cash' ? '#e3f2fd' :
+                                            log.paymentMethod === 'PhonePe' ? '#f3e5f5' : '#fff3e0',
+                                    color:
+                                        log.paymentMethod === 'Cash' ? '#1976d2' :
+                                            log.paymentMethod === 'PhonePe' ? '#7b1fa2' : '#e65100',
                                     borderRadius: 'var(--radius-sm)',
-                                    fontWeight: '500',
+                                    fontWeight: '600',
                                 }}>
                                     {log.paymentMethod || 'Cash'}
+                                </span>
+                                <span style={{
+                                    fontSize: '0.7rem',
+                                    padding: '2px 8px',
+                                    backgroundColor: log.paymentDone === false ? '#ffebee' : '#e8f5e9',
+                                    color: log.paymentDone === false ? '#c62828' : '#2e7d32',
+                                    borderRadius: 'var(--radius-sm)',
+                                    fontWeight: '700',
+                                    border: `1px solid ${log.paymentDone === false ? '#ef9a9a' : '#a5d6a7'}`,
+                                }}>
+                                    {log.paymentDone === false ? '✗ Unpaid' : '✓ Paid'}
                                 </span>
                             </div>
                             <button
